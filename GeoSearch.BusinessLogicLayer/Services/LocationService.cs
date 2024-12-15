@@ -5,11 +5,11 @@ using GeoSearch.DataAccessLayer.Entities;
 
 namespace GeoSearch.BusinessLogicLayer.Services;
 
-public class LocationSearchService : ILocationSearchService
+public class LocationService : ILocationService
 {
     private readonly ILocationApiWrapper _locationApiWrapper;
 
-    public LocationSearchService(ILocationApiWrapper locationApiWrapper)
+    public LocationService(ILocationApiWrapper locationApiWrapper)
     {
        _locationApiWrapper = locationApiWrapper; 
     }

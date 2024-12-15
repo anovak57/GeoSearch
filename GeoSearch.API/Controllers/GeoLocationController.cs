@@ -6,17 +6,17 @@ namespace GeoSearch.API.Controllers
 {
     public class GeoLocationController : BaseApiController
     {
-        private readonly ILocationSearchService _locationSearchService;
+        private readonly ILocationService _locationService;
 
-        public GeoLocationController(ILocationSearchService locationSearchService)
+        public GeoLocationController(ILocationService locationService)
         {
-            _locationSearchService = locationSearchService;
+            _locationService = locationService;
         }
         
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocations([FromBody] LocationSearchRequest searchRequest)
+        [HttpPost]
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> NewLocationSearch([FromBody] LocationSearchRequest searchRequest)
         {
-            var response = await _locationSearchService.GetLocationsAsync(searchRequest);
+            var response = await _locationService.GetLocationsAsync(searchRequest);
             
             return Ok(response);
         }

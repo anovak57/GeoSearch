@@ -3,7 +3,7 @@ using GeoSearch.DataAccessLayer.Entities;
 
 namespace GeoSearch.BusinessLogicLayer.ServiceContracts;
 
-public interface ILocationSearchService
+public interface ILocationService
 {
     Task<IEnumerable<LocationResponse>> GetLocationsAsync(LocationSearchRequest searchRequest);
 }

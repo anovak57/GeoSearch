@@ -1,3 +1,4 @@
+using FluentValidation.AspNetCore;
 using GeoSearch.API.Middlewares;
 using GeoSearch.BusinessLogicLayer;
 using GeoSearch.DataAccessLayer;
@@ -10,6 +11,8 @@ builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddBusinessLogicServices();
 
 builder.Services.AddControllers();
+
+builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -32,6 +35,7 @@ app.UseMiddleware<ApiKeyAuthMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 app.Run();
