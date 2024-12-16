@@ -60,4 +60,27 @@ public class LocationService : ILocationService
         
         return searchRequest;
     }
+
+    public async Task<IEnumerable<LocationResponse>> GetLocationByCategory(string query)
+    {
+        var locations = await _locationRepository.GetGeoLocationsByCategory(query);
+        
+        var locationResponses = locations.Select(loc => loc.ToLocationResponse());
+        
+        return locationResponses;
+    }
+
+    public async Task AddFavouriteLocation(int userId, int locationId)
+    {
+        await _locationRepository.AddFavouriteLocation(userId, locationId);
+    }
+
+    public async Task<IEnumerable<LocationResponse>> GetFavouriteLocations(int userId)
+    {
+        var locations = await _locationRepository.GetFavouriteLocations(userId);
+        
+        var locationResponses = locations.Select(loc => loc.ToLocationResponse());
+        
+        return locationResponses;
+    }
 }

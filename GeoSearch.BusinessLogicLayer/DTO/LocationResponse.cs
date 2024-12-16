@@ -8,5 +8,5 @@ public record LocationResponse(
     string? City,
     string? Region,
     string? PostalCode,
-    List<string?> Categories
+    List<string> Categories
     );

@@ -29,7 +29,7 @@ namespace GeoSearch.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("geolocations")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocations()
         {
             var locations = await _locationService.FetchLocationsFromDatabase();
@@ -37,10 +37,33 @@ namespace GeoSearch.API.Controllers
         }
         
         [HttpGet("location-searches")]
-        public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocationSearches()
+        public async Task<ActionResult<IEnumerable<LocationSearchResponse>>> GetLocationSearches()
         {
             var locationSearches = await _locationService.FetchLocationSearches();
             return Ok(locationSearches);
+        }
+        
+        [HttpGet("{query}")]
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocationsByCategory(string query)
+        {
+            var locations = await _locationService.GetLocationByCategory(query);
+            return Ok(locations);
+        }
+
+        [HttpPost("user/{userId}/locations/{locationId}/save-favourite")]
+        public async Task<ActionResult> AddLocationFavourite(int userId, int locationId)
+        {
+            await _locationService.AddFavouriteLocation(userId, locationId);
+            
+            return NoContent();
+        }
+
+        [HttpGet("user/{userId}/favourite-locations")]
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> GetFavouriteLocationsByUser(int userId)
+        {
+            var locations = await _locationService.GetFavouriteLocations(userId);
+            
+            return Ok(locations);
         }
     }
 }

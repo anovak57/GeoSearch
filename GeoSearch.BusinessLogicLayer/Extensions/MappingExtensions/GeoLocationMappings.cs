@@ -15,7 +15,7 @@ public static class GeoLocationMappings
             location.City,
             location.Region,
             location.PostalCode,
-            location.Categories
+            location.LocationCategories.Select(glc => glc.Category.Name).ToList()
         );
     }
 
@@ -30,7 +30,10 @@ public static class GeoLocationMappings
             City = fsqPlace.Location.Locality,
             Region = fsqPlace.Location.Region,
             PostalCode = fsqPlace.Location.Postcode,
-            Categories = fsqPlace.Categories.Select(cat => cat.Name).ToList()
+            LocationCategories = fsqPlace.Categories.Select(cat => new LocationCategory
+            {
+                Category = new Category { Name = cat.Name }
+            }).ToList()
         };
     }
     
@@ -45,7 +48,10 @@ public static class GeoLocationMappings
             City = location.City,
             Region = location.Region,
             PostalCode = location.PostalCode,
-            Categories = location.Categories
+            LocationCategories = location.Categories.Select(categoryName => new LocationCategory
+            {
+                Category = new Category { Name = categoryName }
+            }).ToList()
         };
     }
 }
