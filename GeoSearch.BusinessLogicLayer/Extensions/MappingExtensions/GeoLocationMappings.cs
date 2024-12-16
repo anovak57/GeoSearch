@@ -33,4 +33,19 @@ public static class GeoLocationMappings
             Categories = fsqPlace.Categories.Select(cat => cat.Name).ToList()
         };
     }
+    
+    public static GeoLocation ToGeoLocation(this LocationResponse location)
+    {
+        return new GeoLocation()
+        {
+            Name = location.Name,
+            Latitude = location.Latitude,
+            Longitude = location.Longitude,
+            Address = location.Address,
+            City = location.City,
+            Region = location.Region,
+            PostalCode = location.PostalCode,
+            Categories = location.Categories
+        };
+    }
 }

@@ -1,9 +1,12 @@
 ﻿using GeoSearch.BusinessLogicLayer.DTO;
-using GeoSearch.DataAccessLayer.Entities;
 
 namespace GeoSearch.BusinessLogicLayer.ServiceContracts;
 
 public interface ILocationService
 {
-    Task<IEnumerable<LocationResponse>> GetLocationsAsync(LocationSearchRequest searchRequest);
+    Task<IEnumerable<LocationResponse>> FetchLocationsFromExternalApiAsync(LocationSearchRequest searchRequest);
+    Task<IEnumerable<LocationResponse>> FetchLocationsFromDatabase();
+    Task<IEnumerable<LocationSearchResponse>> FetchLocationSearches();
+    Task<IEnumerable<LocationResponse>> SaveLocations(IEnumerable<LocationResponse> locations);
+    Task<LocationSearchRequest> SaveLocationSearchRequest(LocationSearchRequest searchRequest);
 }

@@ -7,7 +7,7 @@ public class FoursquareResponse
 
 public class FoursquarePlace
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public FoursquareGeocodes Geocodes { get; set; }
     public FoursquareLocation Location { get; set; }
     public List<FoursquareCategory> Categories { get; set; }
@@ -26,13 +26,13 @@ public class FoursquareCoordinates
 
 public class FoursquareLocation
 {
-    public string Address { get; set; }
-    public string Locality { get; set; }
-    public string Region { get; set; }
-    public string Postcode { get; set; }
+    public string? Address { get; set; }
+    public string? Locality { get; set; }
+    public string? Region { get; set; }
+    public string? Postcode { get; set; }
 }
 
 public class FoursquareCategory
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
 }

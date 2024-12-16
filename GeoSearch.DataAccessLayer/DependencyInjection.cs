@@ -17,6 +17,7 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("PostgresConnection"));
         });
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ILocationRepository, LocationRepository>();
         
         return services;
     }

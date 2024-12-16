@@ -14,11 +14,33 @@ namespace GeoSearch.API.Controllers
         }
         
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<LocationResponse>>> NewLocationSearch([FromBody] LocationSearchRequest searchRequest)
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest? searchRequest)
         {
-            var response = await _locationService.GetLocationsAsync(searchRequest);
+            if (searchRequest == null || !ModelState.IsValid)
+            {
+                return BadRequest("Invalid search request.");
+            }
+            
+            var response = await _locationService.FetchLocationsFromExternalApiAsync(searchRequest);
+            
+            await _locationService.SaveLocations(response);
+            await _locationService.SaveLocationSearchRequest(searchRequest);
             
             return Ok(response);
+        }
+
+        [HttpGet("geolocations")]
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocations()
+        {
+            var locations = await _locationService.FetchLocationsFromDatabase();
+            return Ok(locations);
+        }
+        
+        [HttpGet("location-searches")]
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocationSearches()
+        {
+            var locationSearches = await _locationService.FetchLocationSearches();
+            return Ok(locationSearches);
         }
     }
 }
