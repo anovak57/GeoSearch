@@ -1,26 +1,29 @@
+using GeoSearch.API.Hubs;
 using GeoSearch.BusinessLogicLayer.DTO;
 using GeoSearch.BusinessLogicLayer.ServiceContracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace GeoSearch.API.Controllers
 {
     public class GeoLocationController : BaseApiController
     {
+        private readonly IHubContext<SearchHub> _hubContext;
         private readonly ILocationService _locationService;
 
-        public GeoLocationController(ILocationService locationService)
+        public GeoLocationController(ILocationService locationService, IHubContext<SearchHub> hubContext)
         {
             _locationService = locationService;
+            _hubContext = hubContext;
         }
         
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<LocationResponse>>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest? searchRequest)
+        public async Task<ActionResult<IEnumerable<LocationResponse>>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest searchRequest)
         {
-            if (searchRequest == null || !ModelState.IsValid)
-            {
+            if (!ModelState.IsValid)
                 return BadRequest("Invalid search request.");
-            }
             
+            await _hubContext.Clients.All.SendAsync("ReceiveSearchRequest", searchRequest);
             var response = await _locationService.FetchLocationsFromExternalApiAsync(searchRequest);
             
             await _locationService.SaveLocations(response);

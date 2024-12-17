@@ -1,4 +1,5 @@
 using FluentValidation.AspNetCore;
+using GeoSearch.API.Hubs;
 using GeoSearch.API.Middlewares;
 using GeoSearch.BusinessLogicLayer;
 using GeoSearch.DataAccessLayer;
@@ -17,6 +18,8 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -37,5 +40,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.MapHub<SearchHub>("/searchHub");
 app.MapControllers();
 app.Run();
