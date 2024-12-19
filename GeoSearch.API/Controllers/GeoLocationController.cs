@@ -1,21 +1,17 @@
 using GeoSearch.API.Filters;
-using GeoSearch.API.Hubs;
 using GeoSearch.BusinessLogicLayer.DTO;
 using GeoSearch.BusinessLogicLayer.ServiceContracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
 namespace GeoSearch.API.Controllers
 {
     public class GeoLocationController : BaseApiController
     {
-        private readonly IHubContext<SearchHub> _hubContext;
         private readonly ILocationService _locationService;
 
-        public GeoLocationController(ILocationService locationService, IHubContext<SearchHub> hubContext)
+        public GeoLocationController(ILocationService locationService)
         {
             _locationService = locationService;
-            _hubContext = hubContext;
         }
         
         [HttpPost]
@@ -27,8 +23,6 @@ namespace GeoSearch.API.Controllers
             
             var response = await _locationService.FetchLocationsFromExternalApiAsync(searchRequest);
             var searchResult = await _locationService.SaveGeoLocationSearchWithLocations(searchRequest, response);
-            
-            await _hubContext.Clients.All.SendAsync("ReceiveSearchRequest", searchResult);
             
             return Ok(searchResult);
         }

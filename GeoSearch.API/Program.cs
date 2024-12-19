@@ -1,7 +1,9 @@
 using FluentValidation.AspNetCore;
 using GeoSearch.API.Filters;
-using GeoSearch.API.Hubs;
 using GeoSearch.API.Middlewares;
+using GeoSearch.API.SignalR.Hubs;
+using GeoSearch.API.SignalR.ServiceContracts;
+using GeoSearch.API.SignalR.Services;
 using GeoSearch.BusinessLogicLayer;
 using GeoSearch.DataAccessLayer;
 using GeoSearch.DataAccessLayer.Context;
@@ -23,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<ISignalRNotifier, SignalRNotifier>();
 
 var app = builder.Build();
 

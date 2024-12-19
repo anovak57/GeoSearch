@@ -1,7 +1,7 @@
 ﻿using GeoSearch.BusinessLogicLayer.DTO;
 using Microsoft.AspNetCore.SignalR;
 
-namespace GeoSearch.API.Hubs;
+namespace GeoSearch.API.SignalR.Hubs;
 
 public class SearchHub : Hub
 {
