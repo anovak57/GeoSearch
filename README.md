@@ -115,7 +115,7 @@ Username | API Key
   To ensure idempotent operations, the API expects an `Idempotency-Key` header for specific endpoints. The value should be a unique combination of `lat:lang:query:radius` for the operation.
 
 ### Real-Time Notifications
-  GeoSearch uses SignalR to send real-time updates for new search requests and results. Ensure your client subscribes to the `ReceiveSearchRequest` SignalR event. For testing purposes - a simple console application that subscribes to the `ReceiveSearchRequest` SignalR event
+  GeoSearch uses SignalR to send real-time updates for new search requests and results. Ensure your client subscribes to the `ReceiveSearchRequest` SignalR event. For testing purposes - a simple console application that subscribes to the `ReceiveSearchRequest` SignalR event: https://github.com/anovak57/GeoSearchApiSubscriber
 
 ### Technologies Used
 - Framework: .NET 8
