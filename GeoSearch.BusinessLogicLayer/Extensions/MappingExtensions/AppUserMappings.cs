@@ -5,7 +5,7 @@ namespace GeoSearch.BusinessLogicLayer.Extensions.MappingExtensions;
 
 public static class AppUserMappings
 {
-    public static AuthResponse ToAuthResponse(this AppUser user)
+    public static AuthResponse MapToAuthResponse(this AppUser user)
     {
         return new AuthResponse(user.Username, user.ApiKey);
     }

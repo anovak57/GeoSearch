@@ -11,4 +11,5 @@ public class GeoLocation
     public string? Region { get; set; }
     public string? PostalCode { get; set; }
     public List<LocationCategory> LocationCategories { get; set; } = new();
+    public List<GeoLocationSearch> GeoLocationSearches { get; set; } = new();
 }

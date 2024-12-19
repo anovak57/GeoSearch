@@ -19,6 +19,6 @@ public class UserService : IUserService
     {
         AppUser? user = await _userRepository.GetUserByApiKey(apiKey);
 
-        return user?.ToAuthResponse();
+        return user?.MapToAuthResponse();
     }
 }

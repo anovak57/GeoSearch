@@ -4,8 +4,8 @@ namespace GeoSearch.DataAccessLayer.RepositoryContracts;
 
 public interface ILocationRepository
 {
-    Task<IEnumerable<GeoLocation>> AddGeoLocations(IEnumerable<GeoLocation> locations);
-    Task<GeoLocationSearch> AddLocationSearch(GeoLocationSearch locationSearch);
+    Task<GeoLocationSearch> AddGeoLocationSearchWithLocations(GeoLocationSearch geoLocationSearch,
+        List<GeoLocation> geoLocations);
     Task<IEnumerable<GeoLocation>> GetGeoLocations();
     Task<IEnumerable<GeoLocation>> GetGeoLocationsByCategory(string query);
     Task<IEnumerable<GeoLocationSearch>> GetLocationSearches();

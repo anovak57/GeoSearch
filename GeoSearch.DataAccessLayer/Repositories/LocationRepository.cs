@@ -13,52 +13,78 @@ public class LocationRepository : ILocationRepository
     {
         _context = context;
     }
-
-    public async Task<IEnumerable<GeoLocation>> AddGeoLocations(IEnumerable<GeoLocation> locations)
+    
+    public async Task<GeoLocationSearch> AddGeoLocationSearchWithLocations(GeoLocationSearch searchRequest, List<GeoLocation> geoLocations)
     {
-        var locationList = locations.ToList();
-
-        var uniqueCategoryNames = locationList
-            .SelectMany(location => location.LocationCategories.Select(glc => glc.Category.Name))
+        var allCategories = geoLocations
+            .SelectMany(gl => gl.LocationCategories)
+            .Select(lc => lc.Category.Name)
             .Distinct()
-            .ToHashSet();
+            .ToList();
 
         var existingCategories = await _context.Categories
-            .Where(c => uniqueCategoryNames.Contains(c.Name))
+            .Where(c => allCategories.Contains(c.Name))
             .ToDictionaryAsync(c => c.Name);
 
-        var newCategories = uniqueCategoryNames
+        var newCategories = allCategories
             .Where(name => !existingCategories.ContainsKey(name))
             .Select(name => new Category { Name = name })
             .ToList();
 
-        _context.Categories.AddRange(newCategories);
-
-        var categoryDict = existingCategories
-            .Concat(newCategories.ToDictionary(c => c.Name))
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-        foreach (var location in locationList)
+        if (newCategories.Any())
         {
-            foreach (var geoLocationCategory in location.LocationCategories)
+            await _context.Categories.AddRangeAsync(newCategories);
+            await _context.SaveChangesAsync();
+
+            foreach (var newCategory in newCategories)
             {
-                geoLocationCategory.Category = categoryDict[geoLocationCategory.Category.Name];
+                existingCategories[newCategory.Name] = newCategory;
             }
         }
 
-        await _context.SaveChangesAsync();
-        await _context.GeoLocations.AddRangeAsync(locationList);
+        var existingGeoLocations = await _context.GeoLocations
+            .Select(gl => new
+            {
+                gl.Latitude,
+                gl.Longitude,
+                gl.Name,
+                Entity = gl
+            })
+            .ToListAsync();
+
+        var geoLocationDictionary = existingGeoLocations
+            .GroupBy(gl => new { gl.Latitude, gl.Longitude, gl.Name })
+            .ToDictionary(g => g.Key, g => g.First().Entity);
+
+        var newGeoLocations = geoLocations
+            .Where(gl => !geoLocationDictionary.ContainsKey(new { gl.Latitude, gl.Longitude, gl.Name }))
+            .Select(gl => new GeoLocation
+            {
+                Latitude = gl.Latitude,
+                Longitude = gl.Longitude,
+                Name = gl.Name,
+            })
+            .ToList();
+
+        foreach (var newGeoLocation in newGeoLocations)
+        {
+            geoLocationDictionary[new { newGeoLocation.Latitude, newGeoLocation.Longitude, newGeoLocation.Name }] = newGeoLocation;
+        }
+
+        if (newGeoLocations.Any())
+        {
+            await _context.GeoLocations.AddRangeAsync(newGeoLocations);
+            await _context.SaveChangesAsync();
+        }
+
+        searchRequest.GeoLocations = geoLocations
+            .Select(gl => geoLocationDictionary[new { gl.Latitude, gl.Longitude, gl.Name }])
+            .ToList();
+
+        await _context.GeoLocationSearches.AddAsync(searchRequest);
         await _context.SaveChangesAsync();
 
-        return locationList;
-    }
-
-    public async Task<GeoLocationSearch> AddLocationSearch(GeoLocationSearch locationSearch)
-    {
-        await _context.GeoLocationSearches.AddAsync(locationSearch);
-        await _context.SaveChangesAsync();
-        
-        return locationSearch;
+        return searchRequest;
     }
 
     public async Task<IEnumerable<GeoLocation>> GetGeoLocations()
@@ -78,17 +104,27 @@ public class LocationRepository : ILocationRepository
 
     public async Task<IEnumerable<GeoLocationSearch>> GetLocationSearches()
     {
-        return await _context.GeoLocationSearches.ToListAsync();
+        return await _context.GeoLocationSearches
+            .Include(search => search.GeoLocations)  
+            .ToListAsync();
     }
 
     public async Task AddFavouriteLocation(int userId, int locationId)
     {
-        var favouriteLocation = new FavouriteLocation()
+        var alreadyFavourite = await _context.FavouriteLocations
+            .AnyAsync(f => f.UserId == userId && f.LocationId == locationId);
+
+        if (alreadyFavourite)
+        {
+            throw new InvalidOperationException("This location is already marked as a favorite for the user.");
+        }
+
+        var favouriteLocation = new FavouriteLocation
         {
             UserId = userId,
             LocationId = locationId
         };
-        
+
         await _context.FavouriteLocations.AddAsync(favouriteLocation);
         await _context.SaveChangesAsync();
     }

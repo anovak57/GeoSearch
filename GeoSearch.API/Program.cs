@@ -1,4 +1,5 @@
 using FluentValidation.AspNetCore;
+using GeoSearch.API.Filters;
 using GeoSearch.API.Hubs;
 using GeoSearch.API.Middlewares;
 using GeoSearch.BusinessLogicLayer;
@@ -10,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddBusinessLogicServices();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IdempotencyFilter>();
 
 builder.Services.AddControllers();
 

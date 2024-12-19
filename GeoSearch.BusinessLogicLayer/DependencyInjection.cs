@@ -1,10 +1,8 @@
-﻿using System.Net.Http.Headers;
-using FluentValidation;
+﻿using FluentValidation;
 using GeoSearch.BusinessLogicLayer.ExternalServices;
 using GeoSearch.BusinessLogicLayer.ServiceContracts;
 using GeoSearch.BusinessLogicLayer.Services;
 using GeoSearch.BusinessLogicLayer.Validators;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GeoSearch.BusinessLogicLayer;
@@ -18,7 +16,6 @@ public static class DependencyInjection
         services.AddHttpClient<FourSquareApiWrapper>();
         services.AddScoped<ILocationService, LocationService>();
         services.AddValidatorsFromAssemblyContaining<LocationSearchRequestValidator>();
-        
         return services;
     }
 }

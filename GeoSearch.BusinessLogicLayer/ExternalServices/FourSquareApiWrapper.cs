@@ -37,7 +37,7 @@ public class FourSquareApiWrapper : ILocationApiWrapper
         var foursquareResult = JsonConvert.DeserializeObject<FoursquareResponse>(responseContent)
                                ?? throw new InvalidOperationException("Unexpected null response from Foursquare API.");
             
-        return foursquareResult.Results.Select(result => result.ToGeoLocation());
+        return foursquareResult.Results.Select(result => result.MapToGeoLocation());
     }
 
     private HttpRequestMessage BuildRequest(LocationSearchRequest searchRequest)

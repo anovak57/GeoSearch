@@ -7,4 +7,5 @@ public class GeoLocationSearch
     public double Longitude { get; set; }
     public int Radius { get; set; }
     public string Query { get; set; }
+    public List<GeoLocation> GeoLocations { get; set; } = new();
 }

@@ -5,7 +5,7 @@ namespace GeoSearch.BusinessLogicLayer.Extensions.MappingExtensions;
 
 public static class LocationSearchMappings
 {
-    public static GeoLocationSearch ToGeoLocationSearch(this LocationSearchRequest locationSearch)
+    public static GeoLocationSearch MapToGeoLocationSearch(this LocationSearchRequest locationSearch)
     {
         return new GeoLocationSearch()
         {
@@ -16,13 +16,24 @@ public static class LocationSearchMappings
         };
     }
     
-    public static LocationSearchResponse ToLocationSearchResponse(this GeoLocationSearch locationSearch)
+    public static LocationSearchResponse MapToLocationSearchResponse(this GeoLocationSearch locationSearch)
     {
         return new LocationSearchResponse(
             locationSearch.Latitude,
             locationSearch.Longitude,
             locationSearch.Query,
             locationSearch.Radius
+        );
+    }
+
+    public static SearchResult MapToSearchResult(this GeoLocationSearch locationSearch)
+    {
+        return new SearchResult(
+            locationSearch.Latitude,
+            locationSearch.Longitude,
+            locationSearch.Query,
+            locationSearch.Radius,
+            locationSearch.GeoLocations.Select(loc => loc.MapToLocationResponse())
         );
     }
 }

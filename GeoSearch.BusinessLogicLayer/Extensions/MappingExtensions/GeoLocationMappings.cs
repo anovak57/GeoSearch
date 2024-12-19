@@ -5,7 +5,7 @@ namespace GeoSearch.BusinessLogicLayer.Extensions.MappingExtensions;
 
 public static class GeoLocationMappings
 {
-    public static LocationResponse ToLocationResponse(this GeoLocation location)
+    public static LocationResponse MapToLocationResponse(this GeoLocation location)
     {
         return new LocationResponse(
             location.Name,
@@ -19,7 +19,7 @@ public static class GeoLocationMappings
         );
     }
 
-    public static GeoLocation ToGeoLocation(this FoursquarePlace fsqPlace)
+    public static GeoLocation MapToGeoLocation(this FoursquarePlace fsqPlace)
     {
         return new GeoLocation()
         {
@@ -37,7 +37,7 @@ public static class GeoLocationMappings
         };
     }
     
-    public static GeoLocation ToGeoLocation(this LocationResponse location)
+    public static GeoLocation MapToGeoLocation(this LocationResponse location)
     {
         return new GeoLocation()
         {

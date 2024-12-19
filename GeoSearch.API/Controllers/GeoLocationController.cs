@@ -1,3 +1,4 @@
+using GeoSearch.API.Filters;
 using GeoSearch.API.Hubs;
 using GeoSearch.BusinessLogicLayer.DTO;
 using GeoSearch.BusinessLogicLayer.ServiceContracts;
@@ -18,18 +19,18 @@ namespace GeoSearch.API.Controllers
         }
         
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<LocationResponse>>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest searchRequest)
+        [ServiceFilter(typeof(IdempotencyFilter))]
+        public async Task<ActionResult<IEnumerable<SearchResult>>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest searchRequest)
         {
             if (!ModelState.IsValid)
                 return BadRequest("Invalid search request.");
             
-            await _hubContext.Clients.All.SendAsync("ReceiveSearchRequest", searchRequest);
             var response = await _locationService.FetchLocationsFromExternalApiAsync(searchRequest);
+            var searchResult = await _locationService.SaveGeoLocationSearchWithLocations(searchRequest, response);
             
-            await _locationService.SaveLocations(response);
-            await _locationService.SaveLocationSearchRequest(searchRequest);
+            await _hubContext.Clients.All.SendAsync("ReceiveSearchRequest", searchResult);
             
-            return Ok(response);
+            return Ok(searchResult);
         }
 
         [HttpGet]

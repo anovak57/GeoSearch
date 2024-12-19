@@ -43,6 +43,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Category>()
             .HasIndex(c => c.Name)
             .IsUnique();
+        
+        modelBuilder.Entity<GeoLocation>()
+            .HasMany(gl => gl.GeoLocationSearches)
+            .WithMany(gls => gls.GeoLocations)
+            .UsingEntity(j => j.ToTable("GeoLocationGeoLocationSearch"));
 
         base.OnModelCreating(modelBuilder);
     }
