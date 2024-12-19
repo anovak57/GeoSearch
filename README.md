@@ -28,7 +28,7 @@ GeoSearch is a RESTful API built with `.NET 8`. It integrates with the Foursquar
 1. Clone the repository:
    
    ```bash
-   git clone https://github.com/yourusername/GeoSearch.git
+   git clone https://github.com/anovak57/GeoSearch.git
    cd GeoSearch
    
 2. Update appsettings.Development.json with your environment-specific configuration:
