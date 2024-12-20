@@ -88,11 +88,11 @@ Username | API Key
     
     Idempotency-Key: Unique identifier for the request.
     ```
-- GET `/api/geolocation`
+- GET `/api/geolocation/locations`
 
     Retrieve all locations stored in the database.
 
-- GET `/api/geolocation/{query}`
+- GET `/api/geolocation/locations-by-category/{query}`
   
     Retrieve locations matching a specific category or query.
 
