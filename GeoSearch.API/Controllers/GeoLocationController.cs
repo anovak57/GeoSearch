@@ -16,51 +16,50 @@ namespace GeoSearch.API.Controllers
         
         [HttpPost]
         [ServiceFilter(typeof(IdempotencyFilter))]
-        public async Task<ActionResult<IEnumerable<SearchResult>>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest searchRequest)
+        public async Task<ActionResult<SearchResult>> FetchLocationsAndSaveReqAndResponse([FromBody] LocationSearchRequest searchRequest)
         {
             if (!ModelState.IsValid)
                 return BadRequest("Invalid search request.");
             
-            var response = await _locationService.FetchLocationsFromExternalApiAsync(searchRequest);
-            var searchResult = await _locationService.SaveGeoLocationSearchWithLocations(searchRequest, response);
-            
+            var locationResponses = await _locationService.FetchLocationsFromExternalApiAsync(searchRequest);
+
+            var searchResult = await _locationService.SaveGeoLocationSearchWithLocationsAsync(searchRequest, locationResponses);
+
             return Ok(searchResult);
         }
 
-        [HttpGet]
+        [HttpGet("locations")]
         public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocations()
         {
-            var locations = await _locationService.FetchLocationsFromDatabase();
+            var locations = await _locationService.FetchLocationsFromDatabaseAsync();
             return Ok(locations);
         }
         
         [HttpGet("location-searches")]
         public async Task<ActionResult<IEnumerable<LocationSearchResponse>>> GetLocationSearches()
         {
-            var locationSearches = await _locationService.FetchLocationSearches();
+            var locationSearches = await _locationService.FetchLocationSearchesAsync();
             return Ok(locationSearches);
         }
         
-        [HttpGet("{query}")]
+        [HttpGet("locations-by-category/{query}")]
         public async Task<ActionResult<IEnumerable<LocationResponse>>> GetLocationsByCategory(string query)
         {
-            var locations = await _locationService.GetLocationByCategory(query);
+            var locations = await _locationService.GetLocationByCategoryAsync(query);
             return Ok(locations);
         }
 
         [HttpPost("user/{userId}/locations/{locationId}/save-favourite")]
         public async Task<ActionResult> AddLocationFavourite(int userId, int locationId)
         {
-            await _locationService.AddFavouriteLocation(userId, locationId);
-            
+            await _locationService.AddFavouriteLocationAsync(userId, locationId);
             return NoContent();
         }
 
         [HttpGet("user/{userId}/favourite-locations")]
         public async Task<ActionResult<IEnumerable<LocationResponse>>> GetFavouriteLocationsByUser(int userId)
         {
-            var locations = await _locationService.GetFavouriteLocations(userId);
-            
+            var locations = await _locationService.GetFavouriteLocationsAsync(userId);
             return Ok(locations);
         }
     }

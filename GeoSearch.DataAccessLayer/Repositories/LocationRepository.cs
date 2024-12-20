@@ -13,129 +13,76 @@ public class LocationRepository : ILocationRepository
     {
         _context = context;
     }
-    
-    public async Task<GeoLocationSearch> AddGeoLocationSearchWithLocations(GeoLocationSearch searchRequest, List<GeoLocation> geoLocations)
+
+    public async Task<Dictionary<string, Category>> GetExistingCategoriesAsync(IEnumerable<string> categoryNames)
     {
-        var allCategories = geoLocations
-            .SelectMany(gl => gl.LocationCategories)
-            .Select(lc => lc.Category.Name)
-            .Distinct()
-            .ToList();
-
-        var existingCategories = await _context.Categories
-            .Where(c => allCategories.Contains(c.Name))
+        return await _context.Categories
+            .Where(c => categoryNames.Contains(c.Name))
             .ToDictionaryAsync(c => c.Name);
-
-        var newCategories = allCategories
-            .Where(name => !existingCategories.ContainsKey(name))
-            .Select(name => new Category { Name = name })
-            .ToList();
-
-        if (newCategories.Any())
-        {
-            await _context.Categories.AddRangeAsync(newCategories);
-            await _context.SaveChangesAsync();
-
-            foreach (var newCategory in newCategories)
-            {
-                existingCategories[newCategory.Name] = newCategory;
-            }
-        }
-
-        var existingGeoLocations = await _context.GeoLocations
-            .Select(gl => new
-            {
-                gl.Latitude,
-                gl.Longitude,
-                gl.Name,
-                Entity = gl
-            })
-            .ToListAsync();
-
-        var geoLocationDictionary = existingGeoLocations
-            .GroupBy(gl => new { gl.Latitude, gl.Longitude, gl.Name })
-            .ToDictionary(g => g.Key, g => g.First().Entity);
-
-        var newGeoLocations = geoLocations
-            .Where(gl => !geoLocationDictionary.ContainsKey(new { gl.Latitude, gl.Longitude, gl.Name }))
-            .Select(gl => new GeoLocation
-            {
-                Latitude = gl.Latitude,
-                Longitude = gl.Longitude,
-                Name = gl.Name,
-            })
-            .ToList();
-
-        foreach (var newGeoLocation in newGeoLocations)
-        {
-            geoLocationDictionary[new { newGeoLocation.Latitude, newGeoLocation.Longitude, newGeoLocation.Name }] = newGeoLocation;
-        }
-
-        if (newGeoLocations.Any())
-        {
-            await _context.GeoLocations.AddRangeAsync(newGeoLocations);
-            await _context.SaveChangesAsync();
-        }
-
-        searchRequest.GeoLocations = geoLocations
-            .Select(gl => geoLocationDictionary[new { gl.Latitude, gl.Longitude, gl.Name }])
-            .ToList();
-
-        await _context.GeoLocationSearches.AddAsync(searchRequest);
-        await _context.SaveChangesAsync();
-
-        return searchRequest;
     }
 
-    public async Task<IEnumerable<GeoLocation>> GetGeoLocations()
+    public async Task AddCategoriesAsync(IEnumerable<Category> newCategories)
+    {
+        await _context.Categories.AddRangeAsync(newCategories);
+    }
+
+    public async Task<List<GeoLocation>> GetExistingGeoLocationsAsync()
     {
         return await _context.GeoLocations.ToListAsync();
     }
 
-    public async Task<IEnumerable<GeoLocation>> GetGeoLocationsByCategory(string query)
+    public async Task AddGeoLocationsAsync(IEnumerable<GeoLocation> newGeoLocations)
+    {
+        await _context.GeoLocations.AddRangeAsync(newGeoLocations);
+    }
+
+    public async Task AddGeoLocationSearchAsync(GeoLocationSearch geoLocationSearch)
+    {
+        await _context.GeoLocationSearches.AddAsync(geoLocationSearch);
+    }
+
+    public async Task<IEnumerable<GeoLocation>> GetGeoLocationsAsync()
+    {
+        return await _context.GeoLocations.ToListAsync();
+    }
+
+    public async Task<IEnumerable<GeoLocation>> GetGeoLocationsByCategoryAsync(string query)
     {
         return await _context.GeoLocations
-            .Include(g => g.LocationCategories)
+            .Include(gl => gl.LocationCategories)
             .ThenInclude(lc => lc.Category)
-            .Where(g => g.LocationCategories
-                .Any(glc => glc.Category.Name.ToLower() == query.ToLower()))
+            .Where(gl => gl.LocationCategories.Any(lc => lc.Category.Name.ToLower() == query.ToLower()))
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<GeoLocationSearch>> GetLocationSearches()
+    public async Task<IEnumerable<GeoLocationSearch>> GetLocationSearchesAsync()
     {
         return await _context.GeoLocationSearches
-            .Include(search => search.GeoLocations)  
+            .Include(search => search.GeoLocations)
             .ToListAsync();
     }
 
-    public async Task AddFavouriteLocation(int userId, int locationId)
+    public async Task AddFavouriteLocationAsync(FavouriteLocation favouriteLocation)
     {
-        var alreadyFavourite = await _context.FavouriteLocations
-            .AnyAsync(f => f.UserId == userId && f.LocationId == locationId);
-
-        if (alreadyFavourite)
-        {
-            throw new InvalidOperationException("This location is already marked as a favorite for the user.");
-        }
-
-        var favouriteLocation = new FavouriteLocation
-        {
-            UserId = userId,
-            LocationId = locationId
-        };
-
         await _context.FavouriteLocations.AddAsync(favouriteLocation);
-        await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<GeoLocation>> GetFavouriteLocations(int userId)
+    public async Task<bool> IsFavouriteLocationAsync(int userId, int locationId)
     {
-        var favouriteLocations = await _context.FavouriteLocations
-            .Where(uf => uf.UserId == userId)
-            .Select(uf => uf.Location)
+        return await _context.FavouriteLocations
+            .AnyAsync(f => f.UserId == userId && f.LocationId == locationId);
+    }
+
+    public async Task<IEnumerable<GeoLocation>> GetFavouriteLocationsAsync(int userId)
+    {
+        return await _context.FavouriteLocations
+            .Where(f => f.UserId == userId)
+            .Select(f => f.Location)
             .ToListAsync();
-        
-        return favouriteLocations;
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

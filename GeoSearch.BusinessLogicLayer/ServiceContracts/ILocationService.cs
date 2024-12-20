@@ -6,11 +6,10 @@ namespace GeoSearch.BusinessLogicLayer.ServiceContracts;
 public interface ILocationService
 {
     Task<IEnumerable<LocationResponse>> FetchLocationsFromExternalApiAsync(LocationSearchRequest searchRequest);
-    Task<IEnumerable<LocationResponse>> FetchLocationsFromDatabase();
-    Task<IEnumerable<LocationSearchResponse>> FetchLocationSearches();
-    Task<SearchResult> SaveGeoLocationSearchWithLocations(LocationSearchRequest searchRequest,
-        IEnumerable<LocationResponse> locationResponses);
-    Task<IEnumerable<LocationResponse>> GetLocationByCategory(string query);
-    Task AddFavouriteLocation(int userId, int locationId);
-    Task<IEnumerable<LocationResponse>> GetFavouriteLocations(int userId);
+    Task<IEnumerable<LocationResponse>> FetchLocationsFromDatabaseAsync();
+    Task<IEnumerable<LocationSearchResponse>> FetchLocationSearchesAsync();
+    Task<SearchResult> SaveGeoLocationSearchWithLocationsAsync(LocationSearchRequest searchRequest, IEnumerable<LocationResponse> locationResponses);
+    Task<IEnumerable<LocationResponse>> GetLocationByCategoryAsync(string query);
+    Task AddFavouriteLocationAsync(int userId, int locationId);
+    Task<IEnumerable<LocationResponse>> GetFavouriteLocationsAsync(int userId);
 }

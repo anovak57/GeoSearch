@@ -13,72 +13,108 @@ public class LocationService : ILocationService
 
     public LocationService(ILocationApiWrapper locationApiWrapper, ILocationRepository locationRepository)
     {
-       _locationApiWrapper = locationApiWrapper; 
-       _locationRepository = locationRepository;
+        _locationApiWrapper = locationApiWrapper;
+        _locationRepository = locationRepository;
     }
 
     public async Task<IEnumerable<LocationResponse>> FetchLocationsFromExternalApiAsync(LocationSearchRequest searchRequest)
     {
-        IEnumerable<GeoLocation> locations = await _locationApiWrapper.SearchPlacesAsync(searchRequest);
-        IEnumerable<LocationResponse> locationResponses = locations.Select(loc => loc.MapToLocationResponse());
-        
-        return locationResponses;
+        var locations = await _locationApiWrapper.SearchPlacesAsync(searchRequest);
+        return locations.Select(loc => loc.MapToLocationResponse());
     }
 
-    public async Task<IEnumerable<LocationResponse>> FetchLocationsFromDatabase()
+    public async Task<IEnumerable<LocationResponse>> FetchLocationsFromDatabaseAsync()
     {
-        var locations = await _locationRepository.GetGeoLocations();
-        
-        var locationResponses = locations.Select(loc => loc.MapToLocationResponse());
-        
-        return locationResponses;
+        var locations = await _locationRepository.GetGeoLocationsAsync();
+        return locations.Select(loc => loc.MapToLocationResponse());
     }
 
-    public async Task<IEnumerable<LocationSearchResponse>> FetchLocationSearches()
+    public async Task<IEnumerable<LocationSearchResponse>> FetchLocationSearchesAsync()
     {
-        var locationSearches = await _locationRepository.GetLocationSearches();
-        
-        var locationSearchResponses = locationSearches.Select(loc => loc.MapToLocationSearchResponse());
-        
-        return locationSearchResponses;
+        var locationSearches = await _locationRepository.GetLocationSearchesAsync();
+        return locationSearches.Select(search => search.MapToLocationSearchResponse());
     }
-    
-    public async Task<SearchResult> SaveGeoLocationSearchWithLocations(
+
+    public async Task<SearchResult> SaveGeoLocationSearchWithLocationsAsync(
         LocationSearchRequest searchRequest, IEnumerable<LocationResponse> locationResponses)
     {
-        GeoLocationSearch geoLocationSearch = searchRequest.MapToGeoLocationSearch();
+        var geoLocationSearch = searchRequest.MapToGeoLocationSearch();
+        var geoLocations = locationResponses.Select(loc => loc.MapToGeoLocation()).ToList();
 
-        List<GeoLocation> geoLocations = locationResponses
-            .Select(loc => loc.MapToGeoLocation())
+        await HandleCategoriesAndGeoLocationsAsync(geoLocations);
+
+        geoLocationSearch.GeoLocations = geoLocations;
+
+        await _locationRepository.AddGeoLocationSearchAsync(geoLocationSearch);
+        await _locationRepository.SaveChangesAsync();
+
+        return geoLocationSearch.MapToSearchResult();
+    }
+
+    private async Task HandleCategoriesAndGeoLocationsAsync(List<GeoLocation> geoLocations)
+    {
+        var categoryNames = geoLocations
+            .SelectMany(gl => gl.LocationCategories)
+            .Select(lc => lc.Category.Name)
+            .Distinct(StringComparer.OrdinalIgnoreCase) 
             .ToList();
 
-        var savedSearch = await _locationRepository.AddGeoLocationSearchWithLocations(geoLocationSearch, geoLocations);
-        
-        var searchResult = savedSearch.MapToSearchResult();
+        var existingCategories = await _locationRepository.GetExistingCategoriesAsync(categoryNames);
 
-        return searchResult;
+        var newCategories = categoryNames
+            .Except(existingCategories.Keys, StringComparer.OrdinalIgnoreCase) 
+            .Select(name => new Category { Name = name })
+            .ToList();
+
+        if (newCategories.Any())
+        {
+            await _locationRepository.AddCategoriesAsync(newCategories);
+            await _locationRepository.SaveChangesAsync();
+        }
+
+        var allCategories = existingCategories.Values.Concat(newCategories).ToList();
+
+        foreach (var geoLocation in geoLocations)
+        {
+            geoLocation.LocationCategories = geoLocation.LocationCategories
+                .Select(lc => new LocationCategory
+                {
+                    GeoLocation = geoLocation,
+                    Category = allCategories.First(c => string.Equals(c.Name, lc.Category.Name, StringComparison.OrdinalIgnoreCase))
+                })
+                .ToList();
+        }
+
+        await _locationRepository.AddGeoLocationsAsync(geoLocations);
+        await _locationRepository.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<LocationResponse>> GetLocationByCategory(string query)
+    public async Task<IEnumerable<LocationResponse>> GetLocationByCategoryAsync(string query)
     {
-        var locations = await _locationRepository.GetGeoLocationsByCategory(query);
-        
-        var locationResponses = locations.Select(loc => loc.MapToLocationResponse());
-        
-        return locationResponses;
+        var locations = await _locationRepository.GetGeoLocationsByCategoryAsync(query);
+        return locations.Select(loc => loc.MapToLocationResponse());
     }
 
-    public async Task AddFavouriteLocation(int userId, int locationId)
+    public async Task AddFavouriteLocationAsync(int userId, int locationId)
     {
-        await _locationRepository.AddFavouriteLocation(userId, locationId);
+        if (await _locationRepository.IsFavouriteLocationAsync(userId, locationId))
+        {
+            throw new InvalidOperationException("This location is already marked as a favorite.");
+        }
+
+        var favouriteLocation = new FavouriteLocation
+        {
+            UserId = userId,
+            LocationId = locationId
+        };
+
+        await _locationRepository.AddFavouriteLocationAsync(favouriteLocation);
+        await _locationRepository.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<LocationResponse>> GetFavouriteLocations(int userId)
+    public async Task<IEnumerable<LocationResponse>> GetFavouriteLocationsAsync(int userId)
     {
-        var locations = await _locationRepository.GetFavouriteLocations(userId);
-        
-        var locationResponses = locations.Select(loc => loc.MapToLocationResponse());
-        
-        return locationResponses;
+        var locations = await _locationRepository.GetFavouriteLocationsAsync(userId);
+        return locations.Select(loc => loc.MapToLocationResponse());
     }
 }
